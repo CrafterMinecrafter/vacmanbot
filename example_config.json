@@ -1,0 +1,7 @@
+{
+    "telegram_token": "token",
+    "webhook_endpoint": "127.0.0.1",
+    "certificate_file": "certificate/cert.pem",
+    "private_key_file": "certificate/key.pem",
+    "database_path": "database.db"
+}
