@@ -28,12 +28,6 @@ func NewApp(token, endpoint, certificate, key, databasePath string) *App {
 	}
 
 	log.Println("success:", bt.Me.FirstName, bt.Me.LastName)
-	hook, err := bt.GetWebhook()
-	if err != nil {
-		log.Println("webhookerr", err)
-	} else {
-		log.Printf("%+v", hook)
-	}
 
 	a := &App{
 		bot:         bt,
@@ -65,7 +59,7 @@ func (ap *App) bindHandlers() {
 
 func createMainPoller(endpoint, certificate, key string) tg.Poller {
 	return &tg.Webhook{
-		Listen: ":80",
+		Listen: ":443",
 		TLS: &tg.WebhookTLS{
 			Cert: certificate,
 			Key:  key,

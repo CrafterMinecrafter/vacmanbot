@@ -53,7 +53,7 @@ func (pe *PenisCommand) Execute(m *tg.Message) {
 		sort.Slice(items, func(i, j int) bool {
 			return items[i].Length > items[j].Length
 		})
-		result := "Самая большая елда у " + pe.um.GetNames(items[0].UserID) + ": " + lengthToString(items[0].UserID)
+		result := "Самая большая елда у " + pe.um.GetNames(items[0].UserID) + ": " + lengthToString(items[0].Length)
 		if len(items) > 1 {
 			micro := items[len(items)-1]
 			result += "\n Владелец микрописьки " + pe.um.GetNames(micro.UserID) + ": " + lengthToString(micro.Length)
