@@ -9,10 +9,10 @@ type Fight struct {
 	game *Game
 	P    []*Player
 	N    []string
-	Log  *BattleLog
+	log  *BattleLog
 }
 
-func (f *Fight) Execute() []string {
+func (f *Fight) Execute() *BattleLog {
 	log := NewBattleLog()
 
 	// собираем нужные нам данные
@@ -32,7 +32,7 @@ func (f *Fight) Execute() []string {
 	// проверяем, возможен ли бой вообще
 	if !f.canFight() {
 		log.Append(TextCantFight)
-		return log.Compile()
+		return log
 	}
 
 	// сражаемся
@@ -148,7 +148,7 @@ func (f *Fight) Execute() []string {
 		f.game.db.Put(f.P[loser].ID, f.P[loser])
 	}
 
-	return log.Compile()
+	return log
 }
 
 func (f *Fight) canFight() bool {

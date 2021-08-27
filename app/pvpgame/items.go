@@ -22,6 +22,7 @@ type Armor struct {
 	Protection  int
 }
 
-func GenerateWeapon(level int) int {
+func (g *Game) GenerateWeapon(level int) int {
+
 	return 0
 }

@@ -45,7 +45,7 @@ func (g *Game) MakeFight(firstPlayer, secondPlayer *Player, firstPlayerName, sec
 			firstPlayerName,
 			secondPlayerName,
 		},
-		Log: NewBattleLog(),
+		log: NewBattleLog(),
 	}
 }
 

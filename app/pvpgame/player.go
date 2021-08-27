@@ -45,7 +45,7 @@ func (g *Game) CreateBossFor(player *Player) *Player {
 	bossDamage, bossArmor, bossHealth := generateBossPoints(bossLevel)
 
 	p := Player{
-		ID:    0,
+		ID:    -1,
 		IsBot: true,
 		Stats: PlayerStats{
 			Level:        bossLevel,
@@ -80,26 +80,37 @@ func generateBossLevel(playerLevel int) int {
 		return playerLevel + 3
 	}
 	if playerLevel < 100 {
-		return playerLevel + rand.Intn(6)
+		return playerLevel + rand.Intn(5) + 1
 	}
-	return playerLevel + rand.Intn(11)
+	return playerLevel + rand.Intn(10) + 1
 }
 
 func generateBossPoints(level int) (damage, armor, health int) {
 	freePoints := level * 5
 
-	pe20 := int(float64(freePoints) * 0.2)
-	pe25 := int(float64(freePoints) * 0.25)
-	freePoints -= pe20 + pe25 + pe25
+	dmg, arm, hp := 5, 1, 10
+	rand30p := int(float64(freePoints) * 0.3)
+	rand20p := int(float64(freePoints) * 0.2)
+	freePoints -= rand30p + rand20p + rand20p
+	dmg += rand20p
+	arm += rand20p
+	hp += rand30p * 2
 
-	genDmg, genArm, genHp := 0, 0, 0
-	genDmg = rand.Intn(freePoints) + 1
-	freePoints -= genDmg
 	if freePoints > 0 {
-		genArm = rand.Intn(freePoints) + 1
+		rnddmg := rand.Intn(freePoints)
+		freePoints -= rnddmg
+		dmg += rnddmg
 	}
-	freePoints -= genArm
-	genHp = freePoints
 
-	return pe25 + genDmg, pe25 + genArm, pe20*2 + genHp
+	if freePoints > 0 {
+		rndarm := rand.Intn(freePoints)
+		freePoints -= rndarm
+		arm += rndarm
+	}
+
+	if freePoints > 0 {
+		hp += freePoints * 2
+	}
+
+	return dmg, arm, hp
 }

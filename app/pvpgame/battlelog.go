@@ -1,6 +1,9 @@
 package pvpgame
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type BattleLog struct {
 	items []string
@@ -21,6 +24,10 @@ func (bl *BattleLog) Appendf(format string, items ...interface{}) {
 	bl.Append(s)
 }
 
-func (bl *BattleLog) Compile() []string {
+func (bl *BattleLog) StringSlice() []string {
 	return bl.items
+}
+
+func (bl *BattleLog) String() string {
+	return strings.Join(bl.items, "\n")
 }
