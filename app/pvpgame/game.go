@@ -1,6 +1,11 @@
 package pvpgame
 
-import "github.com/nyan2d/bolteo"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/nyan2d/bolteo"
+)
 
 type Game struct {
 	db      *bolteo.Bolteo
@@ -34,6 +39,17 @@ func (g *Game) GetPlayer(id int) *Player {
 	return player
 }
 
+func (g *Game) SavePlayer(p *Player) {
+	if p.IsBot {
+		return
+	}
+
+	g.players[p.ID] = p
+
+	g.db.Bucket("pvp_users")
+	g.db.Put(p.ID, p)
+}
+
 func (g *Game) MakeFight(firstPlayer, secondPlayer *Player, firstPlayerName, secondPlayerName string) *Fight {
 	return &Fight{
 		game: g,
@@ -47,6 +63,57 @@ func (g *Game) MakeFight(firstPlayer, secondPlayer *Player, firstPlayerName, sec
 		},
 		log: NewBattleLog(),
 	}
+}
+
+func (g *Game) GetStatsStr(id int) string {
+	p := g.GetPlayer(id)
+	lines := []string{
+		fmt.Sprintf("Уровень: %v", p.Stats.Level),
+		fmt.Sprintf("Опыт: %v/%v", p.Stats.Experience, calcLevelToExp(p.Stats.Level+1)),
+		fmt.Sprintf("Урон: %v", p.Stats.Damage),
+		fmt.Sprintf("Защита: %v", p.Stats.Protection),
+		fmt.Sprintf("Здоровье: %v", p.Stats.Health),
+		fmt.Sprintf("Очки умений: %v", p.Stats.UnusedPoints),
+		fmt.Sprintf("Доллары: %v", p.Stats.Gold),
+		fmt.Sprintf("Боёв: %v [%v/%v]", p.Statistics.Fights, p.Statistics.Wins, p.Statistics.Loses),
+		fmt.Sprintf("Эло: %v", p.Statistics.Elo),
+	}
+	return strings.Join(lines, "\n")
+}
+
+func (g *Game) GetItemsStr(id int) string {
+	p := g.GetPlayer(id)
+	weap, armr := g.weapons[p.Items.WeaponID], g.armors[p.Items.ArmorID]
+	qweap, qarmr := g.weapons[p.Items.ArchivedWeapon], g.armors[p.Items.ArchivedArmor]
+	lines := []string{
+		fmt.Sprintf("Оружие: %v; Урон: %v; Шанс крита: %v%%; Урон крита: %v%%", weap.Name, weap.Damage, int(weap.CritChance*100.0), int(weap.CritMultiplier*100.0)),
+		fmt.Sprintf("Броня: %v; Защита: %v; Здоровье: %v", armr.Name, armr.Protection, armr.BonusHealth),
+		fmt.Sprintf("Доступное оружие: %v; Урон: %v; Шанс крита: %v%%; Урон крита: %v%%", qweap.Name, qweap.Damage, int(qweap.CritChance*100.0), int(qweap.CritMultiplier*100.0)),
+		fmt.Sprintf("Доступная броня: %v; Защита: %v; Здоровье: %v", qarmr.Name, qarmr.Protection, qarmr.BonusHealth),
+	}
+	return strings.Join(lines, "\n")
+}
+
+func (g *Game) GetTopPlayersByExpStr(getname func(id int) string) string {
+	g.db.Bucket("pvp_users")
+	top := g.db.As(Player{}).OrderBy("Stats.Experience").Reverse().Take(5).Collect().([]Player)
+	lines := []string{}
+	i := 1
+	for _, v := range top {
+		lines = append(lines, fmt.Sprintf("%v) %v - %v ур", i, getname(v.ID), v.Stats.Level))
+	}
+	return strings.Join(lines, "\n")
+}
+
+func (g *Game) GetTopPlayersByEloStr(getname func(id int) string) string {
+	g.db.Bucket("pvp_users")
+	top := g.db.As(Player{}).OrderBy("Statistics.Elo").Reverse().Take(5).Collect().([]Player)
+	lines := []string{}
+	i := 1
+	for _, v := range top {
+		lines = append(lines, fmt.Sprintf("%v) %v - %v", i, getname(v.ID), v.Stats.Level))
+	}
+	return strings.Join(lines, "\n")
 }
 
 func (g *Game) loadItems() {
