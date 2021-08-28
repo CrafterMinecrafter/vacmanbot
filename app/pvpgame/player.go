@@ -5,11 +5,11 @@ import (
 )
 
 type Player struct {
-	ID         int
-	IsBot      bool
-	Stats      PlayerStats
-	Statistics PlayerStatistics
-	Items      Items
+	ID         int              `json:"id"`
+	IsBot      bool             `json:"-"`
+	Stats      PlayerStats      `json:"stats"`
+	Statistics PlayerStatistics `json:"statistics"`
+	Items      Items            `json:"items"`
 }
 
 func CreatePlayer(id int, isbot bool) *Player {
@@ -32,10 +32,10 @@ func CreatePlayer(id int, isbot bool) *Player {
 			Elo:    1500,
 		},
 		Items: Items{
-			WeaponID:         -1,
-			ArmorID:          -1,
-			AvailableWeapons: []int{},
-			AvailableArmors:  []int{},
+			WeaponID:       -1,
+			ArmorID:        -1,
+			ArchivedWeapon: -1,
+			ArchivedArmor:  -1,
 		},
 	}
 }
@@ -44,15 +44,18 @@ func (g *Game) CreateBossFor(player *Player) *Player {
 	bossLevel := generateBossLevel(player.Stats.Level)
 	bossDamage, bossArmor, bossHealth := generateBossPoints(bossLevel)
 
+	g.generateWeapon(bossLevel, true)
+	g.generateArmor(bossLevel, true)
+
 	p := Player{
 		ID:    -1,
 		IsBot: true,
 		Stats: PlayerStats{
 			Level:        bossLevel,
 			Experience:   calcLevelToExp(bossLevel),
-			Damage:       bossDamage + g.weapons[player.Items.WeaponID].Damage,
-			Protection:   bossArmor + g.armors[player.Items.ArmorID].Protection,
-			Health:       bossHealth + g.armors[player.Items.ArmorID].BonusHealth,
+			Damage:       bossDamage,
+			Protection:   bossArmor,
+			Health:       bossHealth,
 			UnusedPoints: 0,
 			Gold:         0,
 		},
@@ -63,10 +66,10 @@ func (g *Game) CreateBossFor(player *Player) *Player {
 			Elo:    1500,
 		},
 		Items: Items{
-			WeaponID:         -5,
-			ArmorID:          -5,
-			AvailableWeapons: []int{},
-			AvailableArmors:  []int{},
+			WeaponID:       -5,
+			ArmorID:        -5,
+			ArchivedWeapon: -1,
+			ArchivedArmor:  -1,
 		},
 	}
 	return &p

@@ -15,4 +15,8 @@ var (
 	TextInfoExpChanges     = "%v опыт: +%v (%v/%v)"
 	TextInfoNewLevel       = "%v переходит на уровень %v"
 	TextInfoPointsAvalible = "Доступно очков: %v. /up [D/P/H] [count]"
+
+	TextNewWeapon   = "Новое оружие: %v [%v урон %v% шанс %v% урон]"
+	TextNewArmor    = "Новая броня: %v [%v защита %v хп]"
+	TextSwitchToNew = "/%v для переключения на %v"
 )

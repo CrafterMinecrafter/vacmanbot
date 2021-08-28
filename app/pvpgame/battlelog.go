@@ -6,28 +6,65 @@ import (
 )
 
 type BattleLog struct {
-	items []string
+	prelog   []string
+	fightlog []string
+	postlog  []string
 }
 
 func NewBattleLog() *BattleLog {
 	return &BattleLog{
-		items: make([]string, 0),
+		prelog:   make([]string, 0),
+		fightlog: make([]string, 0),
+		postlog:  make([]string, 0),
 	}
 }
 
-func (bl *BattleLog) Append(line string) {
-	bl.items = append(bl.items, line)
+func (bl *BattleLog) AppendPre(line string) {
+	bl.prelog = append(bl.prelog, line)
 }
 
-func (bl *BattleLog) Appendf(format string, items ...interface{}) {
+func (bl *BattleLog) AppendFight(line string) {
+	bl.fightlog = append(bl.fightlog, line)
+}
+
+func (bl *BattleLog) AppendPost(line string) {
+	bl.postlog = append(bl.postlog, line)
+}
+
+func (bl *BattleLog) AppendfPre(format string, items ...interface{}) {
 	s := fmt.Sprintf(format, items...)
-	bl.Append(s)
+	bl.AppendPre(s)
 }
 
-func (bl *BattleLog) StringSlice() []string {
-	return bl.items
+func (bl *BattleLog) AppendfFight(format string, items ...interface{}) {
+	s := fmt.Sprintf(format, items...)
+	bl.AppendFight(s)
 }
 
-func (bl *BattleLog) String() string {
-	return strings.Join(bl.items, "\n")
+func (bl *BattleLog) AppendfPost(format string, items ...interface{}) {
+	s := fmt.Sprintf(format, items...)
+	bl.AppendPost(s)
+}
+
+func (bl *BattleLog) StringSlicePre() []string {
+	return bl.prelog
+}
+
+func (bl *BattleLog) StringSliceFight() []string {
+	return bl.fightlog
+}
+
+func (bl *BattleLog) StringSlicePost() []string {
+	return bl.postlog
+}
+
+func (bl *BattleLog) StringPre() string {
+	return strings.Join(bl.prelog, "\n")
+}
+
+func (bl *BattleLog) StringFight() string {
+	return strings.Join(bl.fightlog, "\n")
+}
+func (bl *BattleLog) StringPost() string {
+	return strings.Join(bl.postlog, "\n")
 }

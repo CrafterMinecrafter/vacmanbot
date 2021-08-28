@@ -52,30 +52,12 @@ func (g *Game) MakeFight(firstPlayer, secondPlayer *Player, firstPlayerName, sec
 func (g *Game) loadItems() {
 	// add default items
 	g.weapons[-1] = &Weapon{
-		ID:             -1,
-		Name:           "Палка",
-		Damage:         0,
-		CritChance:     0.0,
-		CritMultiplier: 1.0,
-	}
-	g.weapons[-5] = &Weapon{
-		ID:             -5,
-		Name:           "Секретное оружие",
-		Damage:         0,
-		CritChance:     0,
-		CritMultiplier: 1.0,
+		ID:   -1,
+		Name: "Отсутствует",
 	}
 	g.armors[-1] = &Armor{
-		ID:          -1,
-		Name:        "Куртка бомжа",
-		BonusHealth: 0,
-		Protection:  0,
-	}
-	g.armors[-5] = &Armor{
-		ID:          -5,
-		Name:        "Секретная броня",
-		BonusHealth: 0,
-		Protection:  0,
+		ID:   -1,
+		Name: "Отсутствует",
 	}
 
 	// load from database
