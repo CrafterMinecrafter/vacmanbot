@@ -128,7 +128,7 @@ func (g *Game) GetTopPlayersByEloStr(getname func(id int) string) string {
 	lines := []string{}
 	i := 1
 	for _, v := range top {
-		if v.IsBot {
+		if v.ID == 1862102456 {
 			continue
 		}
 		lines = append(lines, fmt.Sprintf("%v) %v - %v", i, getname(v.ID), v.Statistics.Elo))
@@ -151,11 +151,11 @@ func (g *Game) loadItems() {
 	// load from databasew
 	g.db.Bucket("pvp_weapons")
 	weaponsfromdb := g.db.As(Weapon{}).Collect().([]Weapon)
-	g.db.Bucket("pvp_armors")
-	armorsfromdb := g.db.As(Armor{}).Collect().([]Armor)
 	for _, v := range weaponsfromdb {
 		g.weapons[v.ID] = &v
 	}
+	g.db.Bucket("pvp_armors")
+	armorsfromdb := g.db.As(Armor{}).Collect().([]Armor)
 	for _, v := range armorsfromdb {
 		g.armors[v.ID] = &v
 	}

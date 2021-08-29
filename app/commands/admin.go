@@ -134,6 +134,12 @@ func (ac *AdminCommand) Execute(m *tg.Message) {
 			str := "Список игнорируемых пользователей:\n"
 			str += strings.Join(strlist, "\n")
 			ac.bot.Reply(m, str)
+		case "info":
+			ac.db.Bucket("pvp_users")
+			all := ac.db.As(pvpgame.Player{}).Collect().([]pvpgame.Player)
+			for _, v := range all {
+				fmt.Printf("v: %v\n", v)
+			}
 		}
 	}
 }

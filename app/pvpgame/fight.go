@@ -16,7 +16,11 @@ func (f *Fight) Execute() *BattleLog {
 	log := NewBattleLog()
 
 	// собираем нужные нам данные
-	weapons := []*Weapon{f.game.weapons[f.P[0].Items.WeaponID], f.game.weapons[f.P[1].Items.WeaponID]}
+	weapons := []*Weapon{
+		f.game.weapons[f.P[0].Items.WeaponID],
+		f.game.weapons[f.P[1].Items.WeaponID],
+	}
+
 	armors := []*Armor{f.game.armors[f.P[0].Items.ArmorID], f.game.armors[f.P[1].Items.ArmorID]}
 
 	// аппендим  сообщение о начале боя

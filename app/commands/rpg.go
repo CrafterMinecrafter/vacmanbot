@@ -85,14 +85,15 @@ func (f FightCommand) Execute(m *tg.Message) {
 	// 900 IQ
 	go func() {
 		msg, _ := f.bot.Reply(m, result.StringPre())
-		time.Sleep(3 * time.Second)
+		time.Sleep(5 * time.Second)
 		fightlog := result.StringSliceFight()
 		if len(fightlog) > 0 {
 			printer := newkubaprinter(fightlog)
 			for printer.next() {
 				msg, _ = f.bot.Edit(msg, printer.print())
-				time.Sleep(1 * time.Second)
+				time.Sleep(2 * time.Second)
 			}
+			time.Sleep(2 * time.Second)
 		}
 		f.bot.Edit(msg, result.StringPost())
 	}()
@@ -138,14 +139,15 @@ func (b *BossCommand) Execute(m *tg.Message) {
 
 	go func() {
 		msg, _ := b.bot.Reply(m, result.StringPre())
-		time.Sleep(3 * time.Second)
+		time.Sleep(5 * time.Second)
 		fightlog := result.StringSliceFight()
 		if len(fightlog) > 0 {
 			printer := newkubaprinter(fightlog)
 			for printer.next() {
 				msg, _ = b.bot.Edit(msg, printer.print())
-				time.Sleep(1 * time.Second)
+				time.Sleep(2 * time.Second)
 			}
+			time.Sleep(2 * time.Second)
 		}
 		b.bot.Edit(msg, result.StringPost())
 	}()
@@ -287,7 +289,7 @@ func NewUpCommand(bot *tg.Bot, game *pvpgame.Game) *UpCommand {
 func (uc *UpCommand) Execute(m *tg.Message) {
 	arg := strings.Split(m.Payload, " ")
 	if len(arg) != 3 {
-		uc.bot.Reply(m, "Что-то не так. Правильный формат: /up УРОН ЗАЩИТА ЗДОРОВЬЕ")
+		uc.bot.Reply(m, "Что-то не так. Правильный формат: /up УРОН ЗАЩИТА ЗДОРОВЬЕ\nПример: /up 1 2 3")
 		return
 	}
 	dmg, err1 := strconv.Atoi(arg[0])
@@ -295,7 +297,7 @@ func (uc *UpCommand) Execute(m *tg.Message) {
 	hel, err3 := strconv.Atoi(arg[2])
 	if err1 != nil || err2 != nil || err3 != nil ||
 		dmg+prt+hel == 0 || dmg < 0 || prt < 0 || hel < 0 {
-		uc.bot.Reply(m, "Что-то не так. Правильный формат: /up УРОН ЗАЩИТА ЗДОРОВЬЕ")
+		uc.bot.Reply(m, "Что-то не так. Правильный формат: /up УРОН ЗАЩИТА ЗДОРОВЬЕ\nПример: /up 1 2 3")
 		return
 	}
 
