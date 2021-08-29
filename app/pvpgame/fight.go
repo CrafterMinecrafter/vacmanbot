@@ -124,7 +124,7 @@ func (f *Fight) Execute() *BattleLog {
 			f.P[loser].Statistics.Fights++
 			f.P[loser].Statistics.Loses++
 		}
-		expgain := calcPrizeExp(f.P[loser].Stats.Level)
+		expgain := calcPrizeExp(f.P[winner].Stats.Level, f.P[loser].Stats.Level)
 		f.P[winner].Stats.Experience += expgain
 		log.AppendfPost(TextInfoExpChanges, f.N[winner], expgain, f.P[winner].Stats.Experience, calcLevelToExp(f.P[winner].Stats.Level+1))
 		oldlevel := f.P[winner].Stats.Level

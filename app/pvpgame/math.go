@@ -16,11 +16,13 @@ func calcExpToLevel(exp int) int {
 	return int(x)
 }
 
-func calcPrizeExp(enemyLevel int) int {
-	nl := float64(calcLevelToExp(enemyLevel + 1))
-	cl := float64(calcLevelToExp(enemyLevel))
-	x := math.Round((nl - cl) / 3.0)
-	return int(x)
+func calcPrizeExp(yourLevel, enemyLevel int) int {
+	a := float64(yourLevel)
+	b := float64(enemyLevel)
+	x := 123.0
+	exp := ((b + 1) / (a + 1)) * (x / 3)
+
+	return int(exp)
 }
 
 func calcElo(winner, loser int) (w, l int) {

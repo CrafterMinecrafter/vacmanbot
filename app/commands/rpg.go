@@ -69,7 +69,7 @@ func (f FightCommand) Execute(m *tg.Message) {
 	isBot := m.ReplyTo.Sender.IsBot
 
 	if !f.game.CheckTime(yourId) {
-		f.bot.Reply(m, "Только один бой в минуту!")
+		f.bot.Reply(m, fmt.Sprintf("Следующий бой через %v", fmtDuration(f.game.NextFight(yourId))))
 		return
 	}
 
@@ -90,12 +90,17 @@ func (f FightCommand) Execute(m *tg.Message) {
 		if len(fightlog) > 0 {
 			printer := newkubaprinter(fightlog)
 			for printer.next() {
+				if msg == nil {
+					break
+				}
 				msg, _ = f.bot.Edit(msg, printer.print())
 				time.Sleep(2 * time.Second)
 			}
 			time.Sleep(2 * time.Second)
 		}
-		f.bot.Edit(msg, result.StringPost())
+		if msg != nil {
+			f.bot.Edit(msg, result.StringPost())
+		}
 	}()
 	f.game.UpdateTime(yourId)
 }
@@ -119,11 +124,12 @@ func (b *BossCommand) Execute(m *tg.Message) {
 		"mrekk", "WhiteCat", "aetrna", "Lifeline", "RyuK", "Akolibed", "NyanPotato", "Vaxei", "FlyingTuna", "A21", "Intercambing",
 		"Andros", "Micca", "Mathi", "Dereban", "Paraqeet", "Karthy", "Aireu", "Rafis", "Bubbleman", "badeu", "Alumetri",
 		"Freddie Benson", "InBefore", "im a fancy lad", "SWAGGYSWAGSTER", "ChocoPafe", "Spare", "xootynator", "Umbre",
+		"flae",
 	}
 
 	yourId := m.Sender.ID
 	if !b.game.CheckTime(yourId) {
-		b.bot.Reply(m, "Только один бой в минуту!")
+		b.bot.Reply(m, fmt.Sprintf("Следующий бой через %v", fmtDuration(b.game.NextFight(yourId))))
 		return
 	}
 	you := b.game.GetPlayer(yourId)
@@ -144,12 +150,17 @@ func (b *BossCommand) Execute(m *tg.Message) {
 		if len(fightlog) > 0 {
 			printer := newkubaprinter(fightlog)
 			for printer.next() {
+				if msg == nil {
+					break
+				}
 				msg, _ = b.bot.Edit(msg, printer.print())
 				time.Sleep(2 * time.Second)
 			}
 			time.Sleep(2 * time.Second)
 		}
-		b.bot.Edit(msg, result.StringPost())
+		if msg != nil {
+			b.bot.Edit(msg, result.StringPost())
+		}
 	}()
 	b.game.UpdateTime(yourId)
 }

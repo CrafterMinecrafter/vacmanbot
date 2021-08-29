@@ -42,6 +42,10 @@ func (g *Game) UpdateTime(id int) {
 	g.lastturn[id] = time.Now()
 }
 
+func (g *Game) NextFight(id int) time.Duration {
+	return time.Until(g.lastturn[id].Add(time.Minute))
+}
+
 func (g *Game) GetPlayer(id int) *Player {
 	g.db.Bucket("pvp_users")
 	player, ok := g.players[id]
