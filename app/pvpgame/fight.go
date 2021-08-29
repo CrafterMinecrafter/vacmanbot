@@ -16,26 +16,42 @@ func (f *Fight) Execute() *BattleLog {
 	log := NewBattleLog()
 
 	// собираем нужные нам данные
-	weapons := []*Weapon{
-		f.game.weapons[f.P[0].Items.WeaponID],
-		f.game.weapons[f.P[1].Items.WeaponID],
+	wea1, wea2 := &Weapon{}, &Weapon{}
+	arm1, arm2 := &Armor{}, &Armor{}
+
+	if !f.P[0].IsBot {
+		f.game.db.Bucket("pvp_weapons")
+		f.game.db.Get(f.P[0].Items.WeaponID, wea1)
+		f.game.db.Bucket("pvp_armors")
+		f.game.db.Get(f.P[0].Items.ArmorID, arm1)
+	} else {
+		wea1 = BotWeapon
+		arm1 = BotArmor
+	}
+	if !f.P[1].IsBot {
+		f.game.db.Bucket("pvp_weapons")
+		f.game.db.Get(f.P[1].Items.WeaponID, wea2)
+		f.game.db.Bucket("pvp_armors")
+		f.game.db.Get(f.P[1].Items.ArmorID, arm2)
+	} else {
+		wea2 = BotWeapon
+		arm2 = BotArmor
 	}
 
-	armors := []*Armor{f.game.armors[f.P[0].Items.ArmorID], f.game.armors[f.P[1].Items.ArmorID]}
+	weapons := []*Weapon{wea1, wea2}
+	armors := []*Armor{arm1, arm2}
 
 	// аппендим  сообщение о начале боя
 	log.AppendfPre(TextFightStart, f.N[0], f.P[0].Stats.Level, f.N[1], f.P[1].Stats.Level)
+	log.AppendPre("")
 	// аппендим информацию об игроках
 	log.AppendfPre(TextPlayerInfo, f.N[0], f.P[0].Stats.Damage, f.P[0].Stats.Protection, f.P[0].Stats.Health,
-		weapons[0].Name, weapons[0].Damage, armors[0].Name, armors[0].Protection, armors[0].BonusHealth)
+		weapons[0].Name, weapons[0].Damage, int(weapons[0].CritChance*100.0), int(weapons[0].CritMultiplier*100.0),
+		armors[0].Name, armors[0].Protection, armors[0].BonusHealth)
+	log.AppendPre("")
 	log.AppendfPre(TextPlayerInfo, f.N[1], f.P[1].Stats.Damage, f.P[1].Stats.Protection, f.P[1].Stats.Health,
-		weapons[1].Name, weapons[1].Damage, armors[1].Name, armors[1].Protection, armors[1].BonusHealth)
-
-	// проверяем, возможен ли бой вообще
-	if !f.canFight() {
-		log.AppendPost(TextCantFight)
-		return log
-	}
+		weapons[1].Name, weapons[1].Damage, int(weapons[1].CritChance*100.0), int(weapons[1].CritMultiplier*100.0),
+		armors[1].Name, armors[1].Protection, armors[1].BonusHealth)
 
 	// сражаемся
 	turn := rand.Intn(2)
@@ -57,28 +73,29 @@ func (f *Fight) Execute() *BattleLog {
 		protection := f.P[1-turn].Stats.Protection + armors[1-turn].Protection
 
 		// считаем урон, который прошел
-		rawdamage := damage - protection
+		truedamage := int(float64(damage) * 0.2)
+		rawdamage := (damage - truedamage) - protection
 		if rawdamage < 0 {
 			rawdamage = 0
 		}
 
 		// вычитаем хп
-		health[1-turn] -= rawdamage
+		health[1-turn] -= truedamage + rawdamage
 
 		// генерируем сводку
 		if iscrit {
 			if health[1-turn] <= 0 {
-				log.AppendfFight(TextCritKill, f.N[turn], f.N[1-turn], rawdamage)
+				log.AppendfFight(TextCritKill, f.N[turn], f.N[1-turn], truedamage+rawdamage)
 				break
 			} else {
-				log.AppendfFight(TextCrit, f.N[turn], rawdamage, f.N[1-turn], health[1-turn])
+				log.AppendfFight(TextCrit, f.N[turn], truedamage+rawdamage, f.N[1-turn], health[1-turn])
 			}
 		} else {
 			if health[1-turn] <= 0 {
-				log.AppendfFight(TextKill, f.N[turn], f.N[1-turn], rawdamage)
+				log.AppendfFight(TextKill, f.N[turn], f.N[1-turn], truedamage+rawdamage)
 				break
 			} else {
-				log.AppendfFight(TextDamage, f.N[turn], rawdamage, f.N[1-turn], health[1-turn])
+				log.AppendfFight(TextDamage, f.N[turn], truedamage+rawdamage, f.N[1-turn], health[1-turn])
 			}
 		}
 
@@ -141,12 +158,16 @@ func (f *Fight) Execute() *BattleLog {
 		switch itemtype {
 		case 1:
 			f.P[winner].Items.ArchivedWeapon = itemid
-			nweap := f.game.weapons[itemid]
+			nweap := &Weapon{}
+			f.game.db.Bucket("pvp_weapons")
+			f.game.db.Get(itemid, nweap)
 			log.AppendfPost(TextNewWeapon, nweap.Name, nweap.Damage, int(nweap.CritChance*100.0), int(nweap.CritMultiplier*100.0))
 			log.AppendfPost(TextSwitchToNew, "switchweapon", "новое оружие")
 		case 2:
 			f.P[winner].Items.ArchivedArmor = itemid
-			narm := f.game.armors[itemid]
+			narm := &Armor{}
+			f.game.db.Bucket("pvp_armors")
+			f.game.db.Get(itemid, narm)
 			log.AppendfPost(TextNewArmor, narm.Name, narm.Protection, narm.BonusHealth)
 			log.AppendfPost(TextSwitchToNew, "switcharmor", "новую броню")
 		}
@@ -162,20 +183,6 @@ func (f *Fight) Execute() *BattleLog {
 	}
 
 	return log
-}
-
-func (f *Fight) canFight() bool {
-	damage1 := f.P[0].Stats.Damage
-	damage2 := f.P[1].Stats.Damage
-	protection1 := f.P[0].Stats.Protection
-	protection2 := f.P[1].Stats.Protection
-
-	damage1 += calcCritDamage(f.game.weapons[f.P[0].Items.WeaponID].Damage, f.game.weapons[f.P[0].Items.WeaponID].CritMultiplier)
-	damage2 += calcCritDamage(f.game.weapons[f.P[1].Items.WeaponID].Damage, f.game.weapons[f.P[1].Items.WeaponID].CritMultiplier)
-	protection1 += f.game.armors[f.P[0].Items.ArmorID].Protection
-	protection2 += f.game.armors[f.P[1].Items.ArmorID].Protection
-
-	return damage1 > protection2 || damage2 > protection1
 }
 
 func isCrit(critChance float64) bool {

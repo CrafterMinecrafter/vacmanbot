@@ -27,6 +27,11 @@ type Armor struct {
 	Protection  int    `json:"protection"`
 }
 
+var (
+	BotWeapon *Weapon = &Weapon{ID: -5}
+	BotArmor  *Armor  = &Armor{ID: -5}
+)
+
 func (g *Game) GenerateItemDrop(level int) (itemType int, itemID int) {
 	rnd := rand.Float64()
 	if rnd > 0.9 {
@@ -63,9 +68,10 @@ func (g *Game) generateWeapon(level int, forbot bool) int {
 		g.db.Bucket("pvp_weapons")
 		w.ID = g.db.NextID()
 		g.db.Put(w.ID, w)
+	} else {
+		BotWeapon = &w
 	}
 
-	g.weapons[w.ID] = &w
 	return w.ID
 }
 
@@ -91,9 +97,10 @@ func (g *Game) generateArmor(level int, forbot bool) int {
 		g.db.Bucket("pvp_armors")
 		a.ID = g.db.NextID()
 		g.db.Put(a.ID, a)
+	} else {
+		BotArmor = &a
 	}
 
-	g.armors[a.ID] = &a
 	return a.ID
 }
 

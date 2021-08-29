@@ -278,10 +278,13 @@ func NewSwitchArmorCommand(bot *tg.Bot, game *pvpgame.Game) *SwitchArmorCommand 
 func (sac *SwitchArmorCommand) Execute(m *tg.Message) {
 	yourId := m.Sender.ID
 	p := sac.game.GetPlayer(yourId)
+
 	aa := p.Items.ArmorID
 	p.Items.ArmorID = p.Items.ArchivedArmor
 	p.Items.ArchivedArmor = aa
+
 	sac.game.SavePlayer(p)
+
 	sac.bot.Reply(m, "Броня заменена!")
 }
 
