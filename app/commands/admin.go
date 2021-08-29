@@ -7,6 +7,7 @@ import (
 
 	"github.com/nyan2d/bolteo"
 	"github.com/nyan2d/vacmanbot/app/models"
+	"github.com/nyan2d/vacmanbot/app/pvpgame"
 	"github.com/nyan2d/vacmanbot/app/usermanager"
 	tg "gopkg.in/tucnak/telebot.v2"
 )
@@ -15,14 +16,16 @@ type AdminCommand struct {
 	bot       *tg.Bot
 	db        *bolteo.Bolteo
 	um        *usermanager.UserManager
+	gm        *pvpgame.Game
 	startTime time.Time
 }
 
-func NewAdminCommand(bot *tg.Bot, db *bolteo.Bolteo, um *usermanager.UserManager) *AdminCommand {
+func NewAdminCommand(bot *tg.Bot, db *bolteo.Bolteo, um *usermanager.UserManager, gm *pvpgame.Game) *AdminCommand {
 	return &AdminCommand{
 		bot:       bot,
 		db:        db,
 		um:        um,
+		gm:        gm,
 		startTime: time.Now(),
 	}
 }

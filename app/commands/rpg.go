@@ -307,7 +307,7 @@ func (uc *UpCommand) Execute(m *tg.Message) {
 
 	player.Stats.Damage += dmg
 	player.Stats.Protection += prt
-	player.Stats.Health += hel * 2
+	player.Stats.Health += hel
 	player.Stats.UnusedPoints -= dmg + prt + hel
 	uc.game.SavePlayer(player)
 

@@ -51,7 +51,7 @@ func (ap *App) Start() {
 func (ap *App) fillCommands() {
 	ap.commands = make(map[string]commands.Command)
 	ap.commands["/penis"] = commands.NewPenisCommand(ap.bot, ap.usermanager)
-	ap.commands["/admin"] = commands.NewAdminCommand(ap.bot, ap.database, ap.usermanager)
+	ap.commands["/admin"] = commands.NewAdminCommand(ap.bot, ap.database, ap.usermanager, ap.game)
 
 	ap.commands["/fight"] = commands.NewFightCommand(ap.bot, ap.game, ap.usermanager)
 	ap.commands["/boss"] = commands.NewBossCommand(ap.bot, ap.game, ap.usermanager)

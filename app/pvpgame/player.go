@@ -6,7 +6,7 @@ import (
 
 type Player struct {
 	ID         int              `json:"id"`
-	IsBot      bool             `json:"-"`
+	IsBot      bool             `json:"is_bot"`
 	Stats      PlayerStats      `json:"stats"`
 	Statistics PlayerStatistics `json:"statistics"`
 	Items      Items            `json:"items"`
@@ -97,7 +97,7 @@ func generateBossPoints(level int) (damage, armor, health int) {
 	freePoints -= rand30p + rand20p + rand20p
 	dmg += rand20p
 	arm += rand20p
-	hp += rand30p * 2
+	hp += rand30p
 
 	if freePoints > 0 {
 		rnddmg := rand.Intn(freePoints)
@@ -112,7 +112,7 @@ func generateBossPoints(level int) (damage, armor, health int) {
 	}
 
 	if freePoints > 0 {
-		hp += freePoints * 2
+		hp += freePoints
 	}
 
 	return dmg, arm, hp
