@@ -3,27 +3,43 @@ package pvpgame
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/nyan2d/bolteo"
 )
 
 type Game struct {
-	db      *bolteo.Bolteo
-	players map[int]*Player
-	weapons map[int]*Weapon
-	armors  map[int]*Armor
+	db       *bolteo.Bolteo
+	players  map[int]*Player
+	weapons  map[int]*Weapon
+	armors   map[int]*Armor
+	lastturn map[int]time.Time
 }
 
 func NewGame(db *bolteo.Bolteo) *Game {
 	g := &Game{
-		db:      db,
-		players: make(map[int]*Player),
-		weapons: make(map[int]*Weapon),
-		armors:  make(map[int]*Armor),
+		db:       db,
+		players:  make(map[int]*Player),
+		weapons:  make(map[int]*Weapon),
+		armors:   make(map[int]*Armor),
+		lastturn: make(map[int]time.Time),
 	}
 	initBuckets(g.db)
 	g.loadItems()
 	return g
+}
+
+func (g *Game) CheckTime(id int) bool {
+	t, ok := g.lastturn[id]
+	if !ok {
+		g.UpdateTime(id)
+		return true
+	}
+	return t.Add(time.Minute).Before(time.Now())
+}
+
+func (g *Game) UpdateTime(id int) {
+	g.lastturn[id] = time.Now()
 }
 
 func (g *Game) GetPlayer(id int) *Player {
@@ -101,6 +117,7 @@ func (g *Game) GetTopPlayersByExpStr(getname func(id int) string) string {
 	i := 1
 	for _, v := range top {
 		lines = append(lines, fmt.Sprintf("%v) %v - %v ур", i, getname(v.ID), v.Stats.Level))
+		i++
 	}
 	return strings.Join(lines, "\n")
 }
@@ -111,7 +128,11 @@ func (g *Game) GetTopPlayersByEloStr(getname func(id int) string) string {
 	lines := []string{}
 	i := 1
 	for _, v := range top {
-		lines = append(lines, fmt.Sprintf("%v) %v - %v", i, getname(v.ID), v.Stats.Level))
+		if v.IsBot {
+			continue
+		}
+		lines = append(lines, fmt.Sprintf("%v) %v - %v", i, getname(v.ID), v.Statistics.Elo))
+		i++
 	}
 	return strings.Join(lines, "\n")
 }
@@ -127,7 +148,7 @@ func (g *Game) loadItems() {
 		Name: "Отсутствует",
 	}
 
-	// load from database
+	// load from databasew
 	g.db.Bucket("pvp_weapons")
 	weaponsfromdb := g.db.As(Weapon{}).Collect().([]Weapon)
 	g.db.Bucket("pvp_armors")

@@ -13,36 +13,44 @@ import (
 )
 
 type kubaprinter struct {
-	lines []string
-	index int
+	lines   []string
+	display []string
+	index   int
 }
 
 func newkubaprinter(items []string) *kubaprinter {
 	return &kubaprinter{
-		lines: items,
-		index: 0,
+		lines:   items,
+		display: []string{},
+		index:   -1,
 	}
 }
 
 func (k *kubaprinter) next() bool {
+	k.index++
 	return k.index < len(k.lines)
 }
 
 func (k *kubaprinter) print() string {
-	x := []string{}
-	z := 0
-	for k.next() && z < 4 {
-		x = append(x, k.lines[k.index])
-		k.index++
-		z++
+	if len(k.display) == 5 {
+		k.display = k.display[1:]
 	}
-	return strings.Join(x, "\n")
+	k.display = append(k.display, k.lines[k.index])
+	return strings.Join(k.display, "\n")
 }
 
 type FightCommand struct {
 	bot  *tg.Bot
 	game *pvpgame.Game
 	um   *usermanager.UserManager
+}
+
+func NewFightCommand(bot *tg.Bot, game *pvpgame.Game, um *usermanager.UserManager) *FightCommand {
+	return &FightCommand{
+		bot:  bot,
+		game: game,
+		um:   um,
+	}
 }
 
 func (f FightCommand) Execute(m *tg.Message) {
@@ -59,6 +67,11 @@ func (f FightCommand) Execute(m *tg.Message) {
 	yourId := m.Sender.ID
 	victimId := m.ReplyTo.Sender.ID
 	isBot := m.ReplyTo.Sender.IsBot
+
+	if !f.game.CheckTime(yourId) {
+		f.bot.Reply(m, "Только один бой в минуту!")
+		return
+	}
 
 	you := f.game.GetPlayer(yourId)
 	victim := f.game.GetPlayer(victimId)
@@ -77,18 +90,27 @@ func (f FightCommand) Execute(m *tg.Message) {
 		if len(fightlog) > 0 {
 			printer := newkubaprinter(fightlog)
 			for printer.next() {
-				msg, _ = f.bot.Edit(msg, msg.Text, printer.print())
-				time.Sleep(1500 * time.Millisecond)
+				msg, _ = f.bot.Edit(msg, printer.print())
+				time.Sleep(1 * time.Second)
 			}
 		}
-		f.bot.Edit(msg, msg.Text, result.StringPost())
+		f.bot.Edit(msg, result.StringPost())
 	}()
+	f.game.UpdateTime(yourId)
 }
 
 type BossCommand struct {
 	bot  *tg.Bot
 	game *pvpgame.Game
 	um   *usermanager.UserManager
+}
+
+func NewBossCommand(bot *tg.Bot, game *pvpgame.Game, um *usermanager.UserManager) *BossCommand {
+	return &BossCommand{
+		bot:  bot,
+		game: game,
+		um:   um,
+	}
 }
 
 func (b *BossCommand) Execute(m *tg.Message) {
@@ -99,6 +121,10 @@ func (b *BossCommand) Execute(m *tg.Message) {
 	}
 
 	yourId := m.Sender.ID
+	if !b.game.CheckTime(yourId) {
+		b.bot.Reply(m, "Только один бой в минуту!")
+		return
+	}
 	you := b.game.GetPlayer(yourId)
 
 	if you.Stats.Level < 3 {
@@ -117,17 +143,25 @@ func (b *BossCommand) Execute(m *tg.Message) {
 		if len(fightlog) > 0 {
 			printer := newkubaprinter(fightlog)
 			for printer.next() {
-				msg, _ = b.bot.Edit(msg, msg.Text, printer.print())
-				time.Sleep(1500 * time.Millisecond)
+				msg, _ = b.bot.Edit(msg, printer.print())
+				time.Sleep(1 * time.Second)
 			}
 		}
-		b.bot.Edit(msg, msg.Text, result.StringPost())
+		b.bot.Edit(msg, result.StringPost())
 	}()
+	b.game.UpdateTime(yourId)
 }
 
 type StatsCommand struct {
 	bot  *tg.Bot
 	game *pvpgame.Game
+}
+
+func NewStatsCommand(bot *tg.Bot, game *pvpgame.Game) *StatsCommand {
+	return &StatsCommand{
+		bot:  bot,
+		game: game,
+	}
 }
 
 func (sc *StatsCommand) Execute(m *tg.Message) {
@@ -140,6 +174,13 @@ type ItemsCommand struct {
 	game *pvpgame.Game
 }
 
+func NewItemsCommand(bot *tg.Bot, game *pvpgame.Game) *ItemsCommand {
+	return &ItemsCommand{
+		bot:  bot,
+		game: game,
+	}
+}
+
 func (ic *ItemsCommand) Execute(m *tg.Message) {
 	yourId := m.Sender.ID
 	ic.bot.Reply(m, ic.game.GetItemsStr(yourId))
@@ -149,6 +190,14 @@ type TopCommand struct {
 	bot  *tg.Bot
 	game *pvpgame.Game
 	um   *usermanager.UserManager
+}
+
+func NewTopCommand(bot *tg.Bot, game *pvpgame.Game, um *usermanager.UserManager) *TopCommand {
+	return &TopCommand{
+		bot:  bot,
+		game: game,
+		um:   um,
+	}
 }
 
 func (tc *TopCommand) Execute(m *tg.Message) {
@@ -164,6 +213,14 @@ type TopEloCommand struct {
 	um   *usermanager.UserManager
 }
 
+func NewTopEloCommand(bot *tg.Bot, game *pvpgame.Game, um *usermanager.UserManager) *TopEloCommand {
+	return &TopEloCommand{
+		bot:  bot,
+		game: game,
+		um:   um,
+	}
+}
+
 func (te *TopEloCommand) Execute(m *tg.Message) {
 	top := te.game.GetTopPlayersByEloStr(func(id int) string {
 		return te.um.GetNames(id)
@@ -174,6 +231,13 @@ func (te *TopEloCommand) Execute(m *tg.Message) {
 type SwitchWeaponCommand struct {
 	bot  *tg.Bot
 	game *pvpgame.Game
+}
+
+func NewSwitchWeaponCommand(bot *tg.Bot, game *pvpgame.Game) *SwitchWeaponCommand {
+	return &SwitchWeaponCommand{
+		bot:  bot,
+		game: game,
+	}
 }
 
 func (swc *SwitchWeaponCommand) Execute(m *tg.Message) {
@@ -191,6 +255,13 @@ type SwitchArmorCommand struct {
 	game *pvpgame.Game
 }
 
+func NewSwitchArmorCommand(bot *tg.Bot, game *pvpgame.Game) *SwitchArmorCommand {
+	return &SwitchArmorCommand{
+		bot:  bot,
+		game: game,
+	}
+}
+
 func (sac *SwitchArmorCommand) Execute(m *tg.Message) {
 	yourId := m.Sender.ID
 	p := sac.game.GetPlayer(yourId)
@@ -204,6 +275,13 @@ func (sac *SwitchArmorCommand) Execute(m *tg.Message) {
 type UpCommand struct {
 	bot  *tg.Bot
 	game *pvpgame.Game
+}
+
+func NewUpCommand(bot *tg.Bot, game *pvpgame.Game) *UpCommand {
+	return &UpCommand{
+		bot:  bot,
+		game: game,
+	}
 }
 
 func (uc *UpCommand) Execute(m *tg.Message) {
@@ -230,7 +308,8 @@ func (uc *UpCommand) Execute(m *tg.Message) {
 	player.Stats.Damage += dmg
 	player.Stats.Protection += prt
 	player.Stats.Health += hel * 2
+	player.Stats.UnusedPoints -= dmg + prt + hel
 	uc.game.SavePlayer(player)
 
-	uc.bot.Reply(m, "Готово!")
+	uc.bot.Reply(m, fmt.Sprintf("Готово! Доступно очков: %v", player.Stats.UnusedPoints))
 }

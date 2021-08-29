@@ -5,6 +5,7 @@ import (
 
 	"github.com/nyan2d/bolteo"
 	"github.com/nyan2d/vacmanbot/app/commands"
+	"github.com/nyan2d/vacmanbot/app/pvpgame"
 	"github.com/nyan2d/vacmanbot/app/usermanager"
 	tg "gopkg.in/tucnak/telebot.v2"
 )
@@ -13,6 +14,7 @@ type App struct {
 	bot         *tg.Bot
 	database    *bolteo.Bolteo
 	usermanager *usermanager.UserManager
+	game        *pvpgame.Game
 	commands    map[string]commands.Command
 }
 
@@ -33,6 +35,7 @@ func NewApp(token, endpoint, certificate, key, databasePath string) *App {
 		bot:         bt,
 		database:    db,
 		usermanager: um,
+		game:        pvpgame.NewGame(db),
 	}
 
 	a.fillCommands()
@@ -49,6 +52,16 @@ func (ap *App) fillCommands() {
 	ap.commands = make(map[string]commands.Command)
 	ap.commands["/penis"] = commands.NewPenisCommand(ap.bot, ap.usermanager)
 	ap.commands["/admin"] = commands.NewAdminCommand(ap.bot, ap.database, ap.usermanager)
+
+	ap.commands["/fight"] = commands.NewFightCommand(ap.bot, ap.game, ap.usermanager)
+	ap.commands["/boss"] = commands.NewBossCommand(ap.bot, ap.game, ap.usermanager)
+	ap.commands["/stats"] = commands.NewStatsCommand(ap.bot, ap.game)
+	ap.commands["/items"] = commands.NewItemsCommand(ap.bot, ap.game)
+	ap.commands["/top"] = commands.NewTopCommand(ap.bot, ap.game, ap.usermanager)
+	ap.commands["/elo"] = commands.NewTopEloCommand(ap.bot, ap.game, ap.usermanager)
+	ap.commands["/switchweapon"] = commands.NewSwitchWeaponCommand(ap.bot, ap.game)
+	ap.commands["/switcharmor"] = commands.NewSwitchArmorCommand(ap.bot, ap.game)
+	ap.commands["/up"] = commands.NewUpCommand(ap.bot, ap.game)
 }
 
 func (ap *App) bindHandlers() {
