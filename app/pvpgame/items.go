@@ -44,6 +44,12 @@ func (g *Game) GenerateItemDrop(level int) (itemType int, itemID int) {
 
 func (g *Game) generateWeapon(level int, forbot bool) int {
 	lvl := float64(level)
+	if forbot {
+		if lvl < 50 {
+			lvl++
+		}
+		lvl += 10
+	}
 
 	damage := int((lvl * 0.4) + ((rand.Float64() * 0.3) * lvl))
 	crit := rand.Float64() * 0.3
@@ -77,6 +83,13 @@ func (g *Game) generateWeapon(level int, forbot bool) int {
 
 func (g *Game) generateArmor(level int, forbot bool) int {
 	lvl := float64(level)
+	if forbot {
+		if lvl < 50 {
+			lvl++
+		}
+		lvl += 10
+	}
+
 	protection := int((lvl * 0.4) + ((rand.Float64() * 0.3) * lvl))
 	health := int(lvl + (rand.Float64() * (lvl * 1.5)))
 	israre := rand.Float64() >= 0.9

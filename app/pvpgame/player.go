@@ -85,7 +85,7 @@ func generateBossLevel(playerLevel int) int {
 	if playerLevel < 100 {
 		return playerLevel + rand.Intn(5) + 1
 	}
-	return playerLevel + rand.Intn(10) + 1
+	return playerLevel + rand.Intn(10) + 5
 }
 
 func generateBossPoints(level int) (damage, armor, health int) {

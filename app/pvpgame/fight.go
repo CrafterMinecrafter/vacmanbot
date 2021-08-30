@@ -82,7 +82,7 @@ func (f *Fight) Execute() *BattleLog {
 			blockChance = 0.7
 		}
 		if rand.Float64() <= blockChance {
-			log.AppendfFight(TextBlocked, f.N[1-turn], f.N[turn])
+			log.AppendfFight(TextBlocked, f.N[turn], f.N[1-turn])
 			turn = 1 - turn
 			continue
 		}
