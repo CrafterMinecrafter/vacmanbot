@@ -16,8 +16,8 @@ func (f *Fight) Execute() *BattleLog {
 	log := NewBattleLog()
 
 	// собираем нужные нам данные
-	wea1, wea2 := &Weapon{}, &Weapon{}
-	arm1, arm2 := &Armor{}, &Armor{}
+	wea1, wea2 := &Weapon{Name: "Отсутствует"}, &Weapon{Name: "Отсутствует"}
+	arm1, arm2 := &Armor{Name: "Отсутствует"}, &Armor{Name: "Отсутствует"}
 
 	if !f.P[0].IsBot {
 		f.game.db.Bucket("pvp_weapons")
@@ -25,8 +25,10 @@ func (f *Fight) Execute() *BattleLog {
 		f.game.db.Bucket("pvp_armors")
 		f.game.db.Get(f.P[0].Items.ArmorID, arm1)
 	} else {
-		wea1 = BotWeapon
-		arm1 = BotArmor
+		if f.P[0].Stats.Level >= 3 {
+			wea1 = BotWeapon
+			arm1 = BotArmor
+		}
 	}
 	if !f.P[1].IsBot {
 		f.game.db.Bucket("pvp_weapons")
@@ -34,8 +36,10 @@ func (f *Fight) Execute() *BattleLog {
 		f.game.db.Bucket("pvp_armors")
 		f.game.db.Get(f.P[1].Items.ArmorID, arm2)
 	} else {
-		wea2 = BotWeapon
-		arm2 = BotArmor
+		if f.P[1].Stats.Level >= 3 {
+			wea2 = BotWeapon
+			arm2 = BotArmor
+		}
 	}
 
 	weapons := []*Weapon{wea1, wea2}
@@ -71,6 +75,17 @@ func (f *Fight) Execute() *BattleLog {
 
 		// считаем защиту
 		protection := f.P[1-turn].Stats.Protection + armors[1-turn].Protection
+
+		// считаем вероятность блока
+		blockChance := 0.7 * (float64(protection) / float64(damage))
+		if blockChance > 0.7 {
+			blockChance = 0.7
+		}
+		if rand.Float64() <= blockChance {
+			log.AppendfFight(TextBlocked, f.N[1-turn], f.N[turn])
+			turn = 1 - turn
+			continue
+		}
 
 		// считаем урон, который прошел
 		truedamage := int(float64(damage) * 0.2)

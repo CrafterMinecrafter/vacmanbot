@@ -6,14 +6,14 @@ var (
 	TextCrit       = "%v атакует критическим ударом на %v урона, у %v осталось %v хп"
 	TextKill       = "%v убивает %v атакой на %v урона"
 	TextCritKill   = "%v убивает %v критической атакой на %v урона"
-	TextPlayerInfo = "%v\nУрон %v Защита %v Здоровье %v\nОружие: %v\n  Урон %v Крит-шанс: %v%% Урон крита %v%%\nБроня: %v\n  Защита %v Бонусное здоровье %v\n"
+	TextBlocked    = "%v блокирует атаку %v"
 
-	TextCantFight          = "Эти игроки равны! Бой не может состояться."
+	TextPlayerInfo         = "%v\nУрон %v Защита %v Здоровье %v\nОружие: %v\n  Урон %v Крит-шанс: %v%% Урон крита %v%%\nБроня: %v\n  Защита %v Бонусное здоровье %v\n"
 	TextInfoPlayerWins     = "%v побеждает игрока %v"
 	TextInfoPlayerWinsBoss = "%v побеждает босса %v"
 	TextInfoEloChanges     = "ELO: %v +%v; %v %v"
 	TextInfoExpChanges     = "%v опыт: +%v (%v/%v)"
-	TextInfoNewLevel       = "%v переходит на уровень %v"
+	TextInfoNewLevel       = "%v переходит на уровень %v	"
 	TextInfoPointsAvalible = "Доступно очков: %v. /up [D/P/H] [count]"
 
 	TextNewWeapon   = "Новое оружие: %v [%v урон %v%% шанс %v%% урон]"
