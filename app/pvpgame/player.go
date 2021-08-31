@@ -1,8 +1,6 @@
 package pvpgame
 
-import (
-	"math/rand"
-)
+import "math/rand"
 
 type Player struct {
 	ID         int              `json:"id"`
@@ -41,21 +39,35 @@ func CreatePlayer(id int, isbot bool) *Player {
 }
 
 func (g *Game) CreateBossFor(player *Player) *Player {
-	bossLevel := generateBossLevel(player.Stats.Level)
-	bossDamage, bossArmor, bossHealth := generateBossPoints(bossLevel)
+	lvl := float64(player.Stats.Level)
+	winrate := 0.3
+	if lvl < 3 {
+		winrate = 0.0
+	} else if lvl < 10 {
+		winrate = 0.7
+	} else if lvl < 50 {
+		winrate = 0.5
+	} else if lvl < 100 {
+		winrate = 0.4
+	}
 
-	g.generateWeapon(bossLevel, true)
-	g.generateArmor(bossLevel, true)
+	vac := !(rand.Float64() <= winrate)
 
-	p := Player{
+	damage := is(vac, scale(player.Stats.Damage, 1.1), scale(player.Stats.Damage, 0.9))
+	protection := is(vac, scale(player.Stats.Protection, 1.1), scale(player.Stats.Protection, 0.9))
+	health := is(vac, scale(player.Stats.Health, 1.3), scale(player.Stats.Health, 0.8))
+	level := ((damage + protection + health) - 16) / 5
+	experience := calcLevelToExp(level)
+
+	result := &Player{
 		ID:    -1,
 		IsBot: true,
 		Stats: PlayerStats{
-			Level:        bossLevel,
-			Experience:   calcLevelToExp(bossLevel),
-			Damage:       bossDamage,
-			Protection:   bossArmor,
-			Health:       bossHealth,
+			Level:        level,
+			Experience:   experience,
+			Damage:       damage,
+			Protection:   protection,
+			Health:       health,
 			UnusedPoints: 0,
 			Gold:         0,
 		},
@@ -72,48 +84,57 @@ func (g *Game) CreateBossFor(player *Player) *Player {
 			ArchivedArmor:  -1,
 		},
 	}
-	return &p
+
+	playerWeapon := Weapon{}
+	if player.Items.WeaponID > -1 {
+		g.db.Bucket("pvp_weapons")
+		g.db.Get(player.Items.WeaponID, &playerWeapon)
+	}
+	playerArmor := Armor{}
+	if player.Items.ArmorID > -1 {
+		g.db.Bucket("pvp_armors")
+		g.db.Get(player.Items.ArmorID, &playerArmor)
+	}
+
+	weapDamage := is(vac, scale(playerWeapon.Damage, 1.2), scale(playerWeapon.Damage, 0.9))
+	weapCritChance := playerWeapon.CritChance
+	weapCritDamage := isf(rand.Float64() >= 0.5, playerWeapon.CritMultiplier*1.2, playerWeapon.CritMultiplier*0.9)
+
+	armProtection := is(vac, scale(playerArmor.Protection, 1.2), scale(playerArmor.Protection, 0.9))
+	armHealth := is(vac, scale(playerArmor.BonusHealth, 1.2), scale(playerArmor.BonusHealth, 0.9))
+
+	BotWeapon = &Weapon{
+		ID:             -5,
+		Name:           generateWeaponName(false),
+		Damage:         weapDamage,
+		CritChance:     weapCritChance,
+		CritMultiplier: weapCritDamage,
+	}
+
+	BotArmor = &Armor{
+		ID:          -5,
+		Name:        generateArmorName(false),
+		BonusHealth: armHealth,
+		Protection:  armProtection,
+	}
+
+	return result
 }
 
-func generateBossLevel(playerLevel int) int {
-	if playerLevel < 10 {
-		return playerLevel + 1
+func is(x bool, a, b int) int {
+	if x {
+		return a
 	}
-	if playerLevel < 20 {
-		return playerLevel + 3
-	}
-	if playerLevel < 100 {
-		return playerLevel + rand.Intn(5) + 1
-	}
-	return playerLevel + rand.Intn(10) + 5
+	return b
 }
 
-func generateBossPoints(level int) (damage, armor, health int) {
-	freePoints := level * 5
-
-	dmg, arm, hp := 5, 1, 10
-	rand30p := int(float64(freePoints) * 0.3)
-	rand20p := int(float64(freePoints) * 0.2)
-	freePoints -= rand30p + rand20p + rand20p
-	dmg += rand20p
-	arm += rand20p
-	hp += rand30p
-
-	if freePoints > 0 {
-		rnddmg := rand.Intn(freePoints)
-		freePoints -= rnddmg
-		dmg += rnddmg
+func isf(x bool, a, b float64) float64 {
+	if x {
+		return a
 	}
+	return b
+}
 
-	if freePoints > 0 {
-		rndarm := rand.Intn(freePoints)
-		freePoints -= rndarm
-		arm += rndarm
-	}
-
-	if freePoints > 0 {
-		hp += freePoints
-	}
-
-	return dmg, arm, hp
+func scale(x int, factor float64) int {
+	return int(float64(x) * factor)
 }

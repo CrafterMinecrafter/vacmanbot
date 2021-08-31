@@ -35,21 +35,15 @@ var (
 func (g *Game) GenerateItemDrop(level int) (itemType int, itemID int) {
 	rnd := rand.Float64()
 	if rnd > 0.9 {
-		return 1, g.generateWeapon(level, false)
+		return 1, g.generateWeapon(level)
 	} else if rnd > 0.8 {
-		return 2, g.generateArmor(level, false)
+		return 2, g.generateArmor(level)
 	}
 	return 0, -1
 }
 
-func (g *Game) generateWeapon(level int, forbot bool) int {
+func (g *Game) generateWeapon(level int) int {
 	lvl := float64(level)
-	if forbot {
-		if lvl < 50 {
-			lvl++
-		}
-		lvl += 10
-	}
 
 	damage := int((lvl * 0.4) + ((rand.Float64() * 0.3) * lvl))
 	crit := rand.Float64() * 0.3
@@ -70,25 +64,15 @@ func (g *Game) generateWeapon(level int, forbot bool) int {
 		CritMultiplier: critmul,
 	}
 
-	if !forbot {
-		g.db.Bucket("pvp_weapons")
-		w.ID = g.db.NextID()
-		g.db.Put(w.ID, w)
-	} else {
-		BotWeapon = &w
-	}
+	g.db.Bucket("pvp_weapons")
+	w.ID = g.db.NextID()
+	g.db.Put(w.ID, w)
 
 	return w.ID
 }
 
-func (g *Game) generateArmor(level int, forbot bool) int {
+func (g *Game) generateArmor(level int) int {
 	lvl := float64(level)
-	if forbot {
-		if lvl < 50 {
-			lvl++
-		}
-		lvl += 10
-	}
 
 	protection := int((lvl * 0.4) + ((rand.Float64() * 0.3) * lvl))
 	health := int(lvl + (rand.Float64() * (lvl * 1.5)))
@@ -106,13 +90,9 @@ func (g *Game) generateArmor(level int, forbot bool) int {
 		Protection:  protection,
 	}
 
-	if !forbot {
-		g.db.Bucket("pvp_armors")
-		a.ID = g.db.NextID()
-		g.db.Put(a.ID, a)
-	} else {
-		BotArmor = &a
-	}
+	g.db.Bucket("pvp_armors")
+	a.ID = g.db.NextID()
+	g.db.Put(a.ID, a)
 
 	return a.ID
 }
